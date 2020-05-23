@@ -3,16 +3,22 @@
 </svelte:head>
 
 <div>
-    <BalancePanel on:balanceAdd={onBalanceAdd} {...{ balanceType: "expenses", balances }} />
-    <BalancePanel on:balanceAdd={onBalanceAdd} {...{balanceType: "income", balances }} />
-    <BalancePanel on:balanceAdd={onBalanceAdd} {...{ balanceType: "savings", balances }} />
+    {#each balanceTypes as balanceType}
+    <BalancePanel 
+        on:balanceAdd={onBalanceAdd} 
+        on:balanceEdit={onBalanceEdit} 
+        on:balanceDelete={onBalanceDelete} 
+        {...{ balanceType, balances }} 
+    />
+    {/each}
 </div>
 
 <script>
     import BalancePanel from '../components/BalancePanel.svelte';
+    let balanceTypes = ['expenses', 'income', 'savings'];
     let balances = {}
 
-    function onBalanceAdd({ detail: { balanceType, newBalance }}) {
+    function onBalanceAdd({ detail: { balanceType, newBalance, onSuccess }}) {
         if(!balances[balanceType]) balances[balanceType] = [];
         
         normalize(newBalance, normalled => {
@@ -23,7 +29,34 @@
                         normalled
                 ]
             };
+            onSuccess();
         });
+    }
+
+    function onBalanceEdit({ detail: { balanceType, editedBalance, onSuccess }}) {
+        normalize(editedBalance, normalled => {
+            balances = {
+                ...balances,
+                [balanceType]: [
+                    ...balances[balanceType].filter(entry => 
+                        entry.timestamp !== editedBalance.timestamp
+                    ),
+                    normalled
+                ]
+            };
+            onSuccess();
+        });
+    }
+
+    function onBalanceDelete({ detail: { balanceType, timestamp }}) {
+        balances = {
+            ...balances,
+            [balanceType]: [
+                ...balances[balanceType].filter(entry => 
+                    entry.timestamp !== timestamp
+                )
+            ]
+        }
     }
 
     function normalize(balance, cb) {
@@ -32,7 +65,6 @@
             cb({ ...balance, amount });
         }
     }
-    $: console.log('balances = ', balances)
 </script>
 
 <style>

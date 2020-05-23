@@ -1,5 +1,7 @@
 <div>
-    <h3>{`${balanceType.charAt(0).toUpperCase()}${balanceType.substr(1)}`}
+    <h3>
+        {`${balanceType.charAt(0).toUpperCase()}${balanceType.substr(1)}`}
+        <span>£{(entries.reduce((acc, curr) => acc += curr.amount, 0)).toFixed(2)}</span>
     </h3>
 
     <table>
@@ -9,20 +11,21 @@
             {/each}
         </thead>
         <tbody>
-            {#each entries as entry}
-                <tr>
-                    {#each columns as col}
-                        <td>{entry[col]}</td>
-                    {/each}
-                </tr>
+            {#each entries as entry (entry.timestamp)}
+                <EditableRow 
+                    on:balanceEdit
+                    on:balanceDelete
+                    {...{ balanceType, columns, entry }} 
+                />
             {/each}
-            <Row on:balanceAdd {...{ columns, balanceType }} />
+            <InputRow on:balanceAdd {...{ columns, balanceType }} />
         </tbody> 
     </table>
 </div>
 
 <script>
-    import Row from './Row.svelte';
+    import InputRow from './InputRow.svelte';
+    import EditableRow from './EditableRow.svelte';
     export let balanceType, balances;
     let columns = ['description', 'amount']
 
@@ -39,16 +42,14 @@
         margin: 4px;
         padding: 4px;
     }
-    h3 {
-        display: flex;
-        justify-content: space-between;        
-        align-items: baseline;
+    h3 span {
+        float: right
     }
     table {
         border-collapse: collapse;
         width: 100%;
     }
-    th, td {
+    th {
         border: 1px solid #555;
     }
 </style>
