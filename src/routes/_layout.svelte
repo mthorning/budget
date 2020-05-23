@@ -1,6 +1,5 @@
 <style>
 	main {
-		max-width: 75em;
 		background-color: white;
 		padding: 2em;
 		margin: 0 auto;

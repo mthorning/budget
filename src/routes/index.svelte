@@ -3,20 +3,39 @@
 </svelte:head>
 
 <div>
-    {#each balanceTypes as balanceType}
-    <BalancePanel 
-        on:balanceAdd={onBalanceAdd} 
-        on:balanceEdit={onBalanceEdit} 
-        on:balanceDelete={onBalanceDelete} 
-        {...{ balanceType, balances }} 
-    />
-    {/each}
+    <section>
+        {#each balanceTypes as balanceType}
+            <BalancePanel 
+                on:balanceAdd={onBalanceAdd} 
+                on:balanceEdit={onBalanceEdit} 
+                on:balanceDelete={onBalanceDelete} 
+                {...{ balanceType, balances, totals }} 
+            />
+        {/each}
+    </section>
+    <section>
+        <Graph {...{ savings, monthlyChange }} />
+    </section>
 </div>
 
 <script>
     import BalancePanel from '../components/BalancePanel.svelte';
+    import Graph from '../components/Graph.svelte';
+
     let balanceTypes = ['expenses', 'income', 'savings'];
     let balances = {}
+
+    $: totals =  balanceTypes.map(type => {
+        if(balances[type]) {
+            return balances[type].reduce((acc, curr) => acc += curr.amount, 0);
+        }
+        return;
+    });
+
+    $: monthlyChange = totals.expenses && totals.income
+        ? totals.income - totals.expenses 
+        : 0;
+    $: savings = totals.savings || 0;
 
     function onBalanceAdd({ detail: { balanceType, newBalance, onSuccess }}) {
         if(!balances[balanceType]) balances[balanceType] = [];
@@ -68,9 +87,16 @@
 </script>
 
 <style>
-    div {
-        height: 50vh;
+    div, section {
         display: flex;
-        justify-content: space-around;
+    }
+    div {
+        height: 90vh;
+        width: 100%;
+        flex-direction: column;
+    }
+    section {
+        margin: 2px 0;
+        flex: 1 0 auto;
     }
 </style>
