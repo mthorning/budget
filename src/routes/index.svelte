@@ -14,21 +14,40 @@
             />
         {/each}
     </section>
-    <section class="controls">
-        <h3>Monthly Change: £{monthlyChange}</h3>
-        <button>Save</button>
-    </section>
+    <div class="controls">
+        <span>
+            <input type="number" bind:value={min} on:change={preventEmpty} />
+            <input type="number" bind:value={max} on:change={preventEmpty}/>
+            <input type="number" bind:value={months} on:change={preventEmpty}/>
+        </span>
+        <SaveButton {...{ balances }} />
+    </div>
     <section>
-        <Graph {...{ savings, monthlyChange }} />
+        <Graph 
+            {...{ savings, monthlyChange, min, max, months }} 
+        />
     </section>
 </div>
+
+<script context="module">
+    export async function preload() {
+        const res = await this.fetch('/balances');
+        const balances = await res.json();
+        return { balances };
+    }
+</script>
 
 <script>
     import BalancePanel from '../components/BalancePanel.svelte';
     import Graph from '../components/Graph.svelte';
+    import SaveButton from '../components/SaveButton.svelte';
 
+    export let balances = {};
+
+    let min = 0;
+    let max = 5000;
+    let months = 12;
     let balanceTypes = ['expenses', 'income', 'savings'];
-    let balances = {}
 
     $: totals =  balanceTypes.map(type => {
         if(balances[type]) {
@@ -41,6 +60,13 @@
     $: income = totals[balanceTypes.indexOf('income')] || 0;
     $: savings = totals[balanceTypes.indexOf('savings')] || 0;
     $: monthlyChange = income - expenses;
+
+    function preventEmpty(e) {
+        if(e.target.value === "") e.target.value = 0;
+    }
+    function step(val) {
+        return Math.floor(val / 100 * 10);
+    }
 
     function onBalanceAdd({ detail: { balanceType, newBalance, onSuccess }}) {
         if(!balances[balanceType]) balances[balanceType] = [];
@@ -105,11 +131,11 @@
         flex: 1 0 auto;
     }
     .controls {
-        flex: 0 0 50px;
+        display: flex;
+        height: 30px;
         justify-content: space-between;
         align-items: baseline;
-    }
-    .controls button {
-        height: 100%;
+        flex-direction: row;
+
     }
 </style>

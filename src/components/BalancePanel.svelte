@@ -1,26 +1,28 @@
-<div>
+<div class="wrapper">
     <h3>
         {`${balanceType.charAt(0).toUpperCase()}${balanceType.substr(1)}`}
         <span>£{(total ? total : 0).toFixed(2)}</span>
     </h3>
 
-    <table>
-        <thead>
-            {#each columns as col}
-                <th>{col}</th>
-            {/each}
-        </thead>
-        <tbody>
-            {#each entries as entry (entry.timestamp)}
-                <EditableRow 
-                    on:balanceEdit
-                    on:balanceDelete
-                    {...{ balanceType, columns, entry }} 
-                />
-            {/each}
-            <InputRow on:balanceAdd {...{ columns, balanceType }} />
-        </tbody> 
-    </table>
+    <div class="table">
+        <table>
+            <thead>
+                {#each columns as col}
+                    <th>{col}</th>
+                {/each}
+            </thead>
+            <tbody>
+                {#each entries as entry (entry.timestamp)}
+                    <EditableRow 
+                        on:balanceEdit
+                        on:balanceDelete
+                        {...{ balanceType, columns, entry }} 
+                    />
+                {/each}
+                <InputRow on:balanceAdd {...{ columns, balanceType }} />
+            </tbody> 
+        </table>
+    </div>
 </div>
 
 <script>
@@ -35,16 +37,19 @@
 </script>
 
 <style>
-    div {
+    .wrapper {
         flex: 1 1 auto;
         margin: 0 2px;
         border: 1px solid gray;
-        height: 100%;
         padding: 4px;
         box-sizing: border-box;
     }
     h3 span {
         float: right
+    }
+    .table {
+        overflow-y: auto;
+        height: 186px;
     }
     table {
         border-collapse: collapse;

@@ -4,32 +4,27 @@
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { startOfMonth, addMonths } from 'date-fns';
-    export let savings, monthlyChange;
-    /* let monthlyChange = 15; */
 
-    let chartEl, svg, path;
+    export let savings, monthlyChange, min, max, months;
 
-    const months = 12;
+    let chartEl, svg, path, x, y;
+
     const width = 600;
     const height = 300;
-    const margin = 50;
+    const margin = 60;
 
-
-    $: data = calculateDataPoints(monthlyChange);
+    $: data = calculateDataPoints(monthlyChange, savings, months);
 
     $: xScale = d3.scaleUtc()
         .domain(d3.extent(data, d => d.date))
         .range([0, width - margin * 2]);
 
     $: yScale = d3.scaleLinear()
-        .domain([
-            -1000 * months,
-            1000 * months
-        ])
-        .nice()
+        .domain([min || 0, max || 5000])
         .range([height - margin, margin]);
     
     $: xAxis = d3.axisBottom()
+        .tickFormat(d3.timeFormat("%m/%y"))
         .scale(xScale);
 
     $: yAxis = d3.axisLeft()
@@ -40,30 +35,32 @@
         .y(d => yScale(d.value));
 
     $: {
-        if(path) {
+        if(svg) {
+
             path.selectAll("path")
             .data([data])
                 .transition()
                 .attr('d', line)
                 .attr('stroke-width', 1)
                 .attr('stroke', 'steelblue');
+
+            x.call(xAxis);
+            y.call(yAxis);
         }
     }
-    $: console.log(data);
     
     onMount(() => {
         svg = d3.select(chartEl) 
             .append("svg")
-            .attr("width", width)
-            .attr("height", height)
+            .attr("viewBox", [0, 0, width, height])
             .append("g")
             .attr("transform", `translate(${margin}, 0)`)
 
-        svg.append("g")
+        x = svg.append("g")
             .attr("transform", `translate(0, ${height - margin})`)
             .call(xAxis);
-
-        svg.append("g")
+        
+        y = svg.append("g")
             .call(yAxis);
 
         path = svg.append("g");
@@ -77,21 +74,21 @@
             .attr("fill", "none");
     });
 
-    function calculateDataPoints(change) {
+    function calculateDataPoints(change, funds, periods) {
         const points = [{ 
             date: startOfMonth(Date.now()),
-            value: savings 
+            value: funds 
         }];
 
-        for(let i = 1; i < months; i++) {
+        for(let i = 1; i < periods; i++) {
             const prev = points[i - 1];
             points.push({ 
                 date: addMonths(prev.date, 1),
                 value: prev.value + change
             });
         }
-        return Object.assign(points.map(({date, value}) => 
-            ({date: new Date(date), value })), {y: "$ Amount"})
+        return points.map(({date, value}) => 
+            ({date: new Date(date), value }))
     }
 
 </script>
@@ -100,6 +97,8 @@
     div {
         height: 100%;
         width: 100%;
+        min-width: 600px;
+        min-height: 300px;
         border: 1px solid #555;
     }
 </style>
