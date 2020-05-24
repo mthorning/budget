@@ -4,78 +4,96 @@
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { startOfMonth, addMonths } from 'date-fns';
-    export let monthlyChange, savings;
+    export let savings, monthlyChange;
+    /* let monthlyChange = 15; */
 
-    let chartEl;
+    let chartEl, svg, path;
+
     const months = 12;
+    const width = 600;
+    const height = 300;
+    const margin = 50;
 
-    const dataPoints = [{ 
-        date: startOfMonth(Date.now()),
-        value: savings 
-    }];
 
-    for(let i = 1; i < months; i++) {
-        const prev = dataPoints[i - 1];
-        dataPoints.push({ 
-            date: addMonths(prev.date, 1),
-            value: prev.value + monthlyChange
-        });
+    $: data = calculateDataPoints(monthlyChange);
+
+    $: xScale = d3.scaleUtc()
+        .domain(d3.extent(data, d => d.date))
+        .range([0, width - margin * 2]);
+
+    $: yScale = d3.scaleLinear()
+        .domain([
+            -1000 * months,
+            1000 * months
+        ])
+        .nice()
+        .range([height - margin, margin]);
+    
+    $: xAxis = d3.axisBottom()
+        .scale(xScale);
+
+    $: yAxis = d3.axisLeft()
+        .scale(yScale);
+
+    $: line = d3.line()
+        .x(d => xScale(d.date))
+        .y(d => yScale(d.value));
+
+    $: {
+        if(path) {
+            path.selectAll("path")
+            .data([data])
+                .transition()
+                .attr('d', line)
+                .attr('stroke-width', 1)
+                .attr('stroke', 'steelblue');
+        }
+    }
+    $: console.log(data);
+    
+    onMount(() => {
+        svg = d3.select(chartEl) 
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${margin}, 0)`)
+
+        svg.append("g")
+            .attr("transform", `translate(0, ${height - margin})`)
+            .call(xAxis);
+
+        svg.append("g")
+            .call(yAxis);
+
+        path = svg.append("g");
+        path.selectAll("path")
+            .data([data])
+            .enter()
+            .append('path')
+            .attr('d', line)
+            .attr('stroke-width', 1)
+            .attr('stroke', 'steelblue')
+            .attr("fill", "none");
+    });
+
+    function calculateDataPoints(change) {
+        const points = [{ 
+            date: startOfMonth(Date.now()),
+            value: savings 
+        }];
+
+        for(let i = 1; i < months; i++) {
+            const prev = points[i - 1];
+            points.push({ 
+                date: addMonths(prev.date, 1),
+                value: prev.value + change
+            });
+        }
+        return Object.assign(points.map(({date, value}) => 
+            ({date: new Date(date), value })), {y: "$ Amount"})
     }
 
-onMount(() => {
-    const width = 500;
-    const height = 300;
-    const margin = {top: 20, right: 30, bottom: 30, left: 40};
-
-    const data = Object.assign(dataPoints.map(({date, value}) => ({date: new Date(date), value })), {y: "$ Amount"})
-
-    const x = d3.scaleUtc()
-        .domain(d3.extent(data, d => d.date))
-        .range([margin.left, width - margin.right])
-
-    const xAxis = g => g
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
-
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.value)]).nice()
-        .range([height - margin.bottom, margin.top])
-
-    const yAxis = g => g
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y))
-        .call(g => g.select(".domain").remove())
-        .call(g => g.select(".tick:last-of-type text").clone()
-            .attr("x", 3)
-            .attr("text-anchor", "start")
-            .attr("font-weight", "bold")
-            .text(data.value))
-
-    const line = d3.line()
-        .defined(d => !isNaN(d.value))
-        .x(d => x(d.date))
-        .y(d => y(d.value))
-    
-    const svg = d3.select(chartEl)
-        .append("svg")
-        .attr("viewBox", [0, 0, width, height]);
-
-    svg.append("g")
-        .call(xAxis);
-
-    svg.append("g")
-        .call(yAxis);
-
-    svg.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-linecap", "round")
-        .attr("d", line);
-
-});
 </script>
 
 <style>

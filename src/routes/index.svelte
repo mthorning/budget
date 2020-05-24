@@ -4,14 +4,19 @@
 
 <div>
     <section>
-        {#each balanceTypes as balanceType}
+        {#each balanceTypes as balanceType, i}
             <BalancePanel 
                 on:balanceAdd={onBalanceAdd} 
                 on:balanceEdit={onBalanceEdit} 
                 on:balanceDelete={onBalanceDelete} 
-                {...{ balanceType, balances, totals }} 
+                total={totals[i]}
+                {...{ balanceType, balances }} 
             />
         {/each}
+    </section>
+    <section class="controls">
+        <h3>Monthly Change: £{monthlyChange}</h3>
+        <button>Save</button>
     </section>
     <section>
         <Graph {...{ savings, monthlyChange }} />
@@ -32,10 +37,10 @@
         return;
     });
 
-    $: monthlyChange = totals.expenses && totals.income
-        ? totals.income - totals.expenses 
-        : 0;
-    $: savings = totals.savings || 0;
+    $: expenses = totals[balanceTypes.indexOf('expenses')] || 0;
+    $: income = totals[balanceTypes.indexOf('income')] || 0;
+    $: savings = totals[balanceTypes.indexOf('savings')] || 0;
+    $: monthlyChange = income - expenses;
 
     function onBalanceAdd({ detail: { balanceType, newBalance, onSuccess }}) {
         if(!balances[balanceType]) balances[balanceType] = [];
@@ -98,5 +103,13 @@
     section {
         margin: 2px 0;
         flex: 1 0 auto;
+    }
+    .controls {
+        flex: 0 0 50px;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .controls button {
+        height: 100%;
     }
 </style>

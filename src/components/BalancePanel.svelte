@@ -1,7 +1,7 @@
 <div>
     <h3>
         {`${balanceType.charAt(0).toUpperCase()}${balanceType.substr(1)}`}
-        <span>£{total.toFixed(2)}</span>
+        <span>£{(total ? total : 0).toFixed(2)}</span>
     </h3>
 
     <table>
@@ -26,11 +26,10 @@
 <script>
     import InputRow from './InputRow.svelte';
     import EditableRow from './EditableRow.svelte';
-    export let balanceType, balances, totals;
+    export let balanceType, balances, total;
 
     let columns = ['description', 'amount']
 
-    $: total = totals[balanceType] || 0;
     $: entries = balances[balanceType] || [];
 
 </script>
