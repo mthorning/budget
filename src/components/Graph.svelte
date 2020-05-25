@@ -11,17 +11,21 @@
 
     const width = 600;
     const height = 300;
-    const margin = 60;
+    const margin = {
+        top: 10,
+        bottom: 60,
+        left: 60
+    }
 
     $: data = calculateDataPoints(monthlyChange, savings, months);
 
     $: xScale = d3.scaleUtc()
         .domain(d3.extent(data, d => d.date))
-        .range([0, width - margin * 2]);
+        .range([0, width - margin.left * 2]);
 
     $: yScale = d3.scaleLinear()
         .domain([min || 0, max || 5000])
-        .range([height - margin, margin]);
+        .range([height - margin.bottom, margin.top]);
     
     $: xAxis = d3.axisBottom()
         .tickFormat(d3.timeFormat("%m/%y"))
@@ -54,10 +58,10 @@
             .append("svg")
             .attr("viewBox", [0, 0, width, height])
             .append("g")
-            .attr("transform", `translate(${margin}, 0)`)
+            .attr("transform", `translate(${margin.left}, 0)`)
 
         x = svg.append("g")
-            .attr("transform", `translate(0, ${height - margin})`)
+            .attr("transform", `translate(0, ${height - margin.bottom})`)
             .call(xAxis);
         
         y = svg.append("g")
@@ -99,6 +103,5 @@
         width: 100%;
         min-width: 600px;
         min-height: 300px;
-        border: 1px solid #555;
     }
 </style>
