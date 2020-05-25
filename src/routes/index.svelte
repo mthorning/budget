@@ -9,6 +9,7 @@
                 on:balanceAdd={onBalanceAdd} 
                 on:balanceEdit={onBalanceEdit} 
                 on:balanceDelete={onBalanceDelete} 
+                on:balanceCheck={onBalanceCheck} 
                 total={totals[i]}
                 {...{ balanceType, balances }} 
             />
@@ -20,7 +21,10 @@
             <input type="number" bind:value={max} on:change={preventEmpty}/>
             <input type="number" bind:value={months} on:change={preventEmpty}/>
         </span>
-        <SaveButton {...{ balances }} />
+        <span>
+            <button on:click={() => balances = {}}>Reset</button>
+            <SaveBalancesButton {...{  balances }} />
+        </span>
     </div>
     <section>
         <Graph 
@@ -40,7 +44,7 @@
 <script>
     import BalancePanel from '../components/BalancePanel.svelte';
     import Graph from '../components/Graph.svelte';
-    import SaveButton from '../components/SaveButton.svelte';
+    import SaveBalancesButton from '../components/SaveBalancesButton.svelte';
 
     export let balances = {};
 
@@ -51,7 +55,11 @@
 
     $: totals =  balanceTypes.map(type => {
         if(balances[type]) {
-            return balances[type].reduce((acc, curr) => acc += curr.amount, 0);
+            return balances[type].reduce((acc, curr) => 
+                curr.checked 
+                    ? acc += curr.amount
+                    : acc
+            ,0);
         }
         return;
     });
@@ -64,8 +72,8 @@
     function preventEmpty(e) {
         if(e.target.value === "") e.target.value = 0;
     }
-    function step(val) {
-        return Math.floor(val / 100 * 10);
+    function updateBalances(newBal) {
+        balances = newBal;
     }
 
     function onBalanceAdd({ detail: { balanceType, newBalance, onSuccess }}) {
@@ -87,25 +95,32 @@
         normalize(editedBalance, normalled => {
             balances = {
                 ...balances,
-                [balanceType]: [
-                    ...balances[balanceType].filter(entry => 
-                        entry.timestamp !== editedBalance.timestamp
-                    ),
-                    normalled
-                ]
+                [balanceType]: balances[balanceType].map(entry => {
+                        return entry.timestamp === editedBalance.timestamp
+                            ? normalled : entry;
+                    }),
             };
-            onSuccess();
+            if(onSuccess) onSuccess();
         });
     }
 
     function onBalanceDelete({ detail: { balanceType, timestamp }}) {
         balances = {
             ...balances,
-            [balanceType]: [
-                ...balances[balanceType].filter(entry => 
-                    entry.timestamp !== timestamp
+            [balanceType]: balances[balanceType].filter(
+                entry => entry.timestamp !== timestamp
+            )
+        }
+    }
+
+    function onBalanceCheck({ detail: { balanceType, checked }}) {
+        if(balances[balanceType]) {
+            balances = {
+                ...balances,
+                [balanceType]: balances[balanceType].map(
+                    entry => ({ ...entry, checked })
                 )
-            ]
+            }
         }
     }
 
@@ -137,5 +152,8 @@
         align-items: baseline;
         flex-direction: row;
 
+    }
+    :global(.text-center) {
+        text-align: center;
     }
 </style>

@@ -1,4 +1,5 @@
 <tr>
+    <td class="text-center"><input bind:this={checkbox} type="checkbox" checked={allChecked} /></td>
     {#each columns as col}
         <td on:blur={() => addEntry()} bind:this={els[col]} on:keydown={onKeydown} contenteditable="true" />
     {/each}
@@ -6,7 +7,8 @@
 
 <script>
     import { createEventDispatcher } from 'svelte';
-    export let balanceType, columns;
+    export let balanceType, columns, checkbox;
+    export let allChecked = true;
 
     const dispatch = createEventDispatcher();
     const els = {};
@@ -26,6 +28,7 @@
 
         if(Object.keys(newBalance).length === columns.length) {
             newBalance.timestamp = Date.now();
+            newBalance.checked = checkbox.checked;
 
             const onSuccess = () => {
                 for(const el in els) {

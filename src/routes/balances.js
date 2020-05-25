@@ -15,12 +15,9 @@ export async function get(req, res, next) {
 }
 
 export async function post(req, res, next) {
-  fs.writeFile(
-    path.resolve("static", fileLocation),
-    JSON.stringify(req.body),
-    (err) => {
-      if (err) throw err;
-      res.end();
-    }
-  );
+  const balances = JSON.stringify(req.body);
+  fs.writeFile(path.resolve("static", fileLocation), balances, (err) => {
+    if (err) throw err;
+    res.end(balances);
+  });
 }

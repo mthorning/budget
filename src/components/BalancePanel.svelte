@@ -7,6 +7,7 @@
     <div class="table">
         <table>
             <thead>
+                <th><input checked on:click={onCheck} bind:this={checkbox} type="checkbox" /></th>
                 {#each columns as col}
                     <th>{col}</th>
                 {/each}
@@ -19,20 +20,43 @@
                         {...{ balanceType, columns, entry }} 
                     />
                 {/each}
-                <InputRow on:balanceAdd {...{ columns, balanceType }} />
+                <InputRow on:balanceAdd {...{ columns, balanceType, allChecked }} />
             </tbody> 
         </table>
     </div>
 </div>
 
 <script>
+    import { createEventDispatcher } from 'svelte';
     import InputRow from './InputRow.svelte';
     import EditableRow from './EditableRow.svelte';
     export let balanceType, balances, total;
 
+    const dispatch = createEventDispatcher();
+
+    let checkbox, allChecked;
     let columns = ['description', 'amount']
 
     $: entries = balances[balanceType] || [];
+    $: {
+        if(checkbox) {
+            const checkedRows = entries.map(entry => entry.checked);
+            if(checkedRows.every(check => !!check)) {
+                checkbox.checked = true;
+                checkbox.indeterminate = false
+            } else if(checkedRows.every(check => !check)) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false
+            } else {
+                checkbox.indeterminate = true
+            }
+        }
+    }
+
+    function onCheck({ target: { checked }}) {
+        allChecked = checked;
+        dispatch('balanceCheck', { balanceType, checked });
+    }
 
 </script>
 

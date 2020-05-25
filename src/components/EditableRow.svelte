@@ -1,6 +1,7 @@
-<tr >
+<tr class:strike={!entry.checked}>
+    <td class="text-center"><input on:click={onCheck} type="checkbox" checked={entry.checked} /></td>
     {#each columns as col}
-        <td on:keydown={onKeydown(col)} contenteditable="true">{entry[col]}</td>
+        <td on:blur={editEntry(col)} on:keydown={onKeydown(col)} contenteditable="true">{entry[col]}</td>
     {/each}
 </tr>
 
@@ -17,12 +18,23 @@
 
         if(e.keyCode === 13) {
             e.preventDefault();
+            editEntry(col)(e)
+        }
+    }
+
+    const editEntry = col => e => {
             dispatch('balanceEdit', { 
                 balanceType, 
                 editedBalance: { ...entry, [col]: e.target.innerHTML },
                 onSuccess: () => e.target.blur()
             });
-        }
+    }
+
+    function onCheck(e) {
+        dispatch('balanceEdit', {
+            balanceType,
+            editedBalance: {...entry, checked: e.target.checked }
+        });
     }
 
 </script>
@@ -30,5 +42,8 @@
 <style>
     td {
         border: 1px solid #555;
+    }
+    tr.strike {
+        text-decoration: line-through;
     }
 </style>
