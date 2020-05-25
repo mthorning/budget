@@ -4,7 +4,7 @@ import fs from "fs";
 const fileLocation = "data/balances.json";
 
 export async function get(req, res, next) {
-  fs.readFile(path.resolve("static", fileLocation), (err, file) => {
+  fs.readFile(fileLocation, (err, file) => {
     if (err) {
       res.end({});
     } else {
@@ -16,7 +16,7 @@ export async function get(req, res, next) {
 
 export async function post(req, res, next) {
   const balances = JSON.stringify(req.body);
-  fs.writeFile(path.resolve("static", fileLocation), balances, (err) => {
+  fs.writeFile(fileLocation, balances, (err) => {
     if (err) throw err;
     res.end(balances);
   });
