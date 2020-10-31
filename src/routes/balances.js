@@ -1,10 +1,9 @@
-import path from "path";
 import fs from "fs";
 
-const fileLocation = "data/balances.json";
+const fileLocation = "data/balances";
 
 export async function get(req, res, next) {
-  fs.readFile(fileLocation, (err, file) => {
+  fs.readFile(`${fileLocation}.json`, (err, file) => {
     if (err) {
       res.end({});
     } else {
@@ -16,8 +15,14 @@ export async function get(req, res, next) {
 
 export async function post(req, res, next) {
   const balances = JSON.stringify(req.body);
-  fs.writeFile(fileLocation, balances, (err) => {
-    if (err) throw err;
-    res.end(balances);
-  });
+  fs.rename(
+    `${fileLocation}.json`,
+    `${fileLocation}-${Date.now()}.json`,
+    () => {
+      fs.writeFile(`${fileLocation}.json`, balances, (err) => {
+        if (err) throw err;
+        res.end(balances);
+      });
+    }
+  );
 }
