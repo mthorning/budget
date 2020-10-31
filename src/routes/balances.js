@@ -1,11 +1,12 @@
 import fs from "fs";
+import path from "path";
 
 const fileLocation = "data/balances";
 
 export async function get(req, res, next) {
-  fs.readFile(`${fileLocation}.json`, (err, file) => {
+  fs.readFile(path.resolve(fileLocation, ".json"), (err, file) => {
     if (err) {
-      res.end({});
+      res.end(JSON.stringify(err));
     } else {
       res.setHeader("Content-Type", "application/json");
       res.end(file);
@@ -16,8 +17,8 @@ export async function get(req, res, next) {
 export async function post(req, res, next) {
   const balances = JSON.stringify(req.body);
   fs.rename(
-    `${fileLocation}.json`,
-    `${fileLocation}-${Date.now()}.json`,
+    path.resolve(fileLocation, ".json"),
+    path.resolve(`${fileLocation}-${Date.now()}`, ".json"),
     () => {
       fs.writeFile(`${fileLocation}.json`, balances, (err) => {
         if (err) throw err;
