@@ -145,7 +145,8 @@
             <input type="number" bind:value={max} on:change={preventEmpty} />
             <input type="number" bind:value={months} on:change={preventEmpty} />
         </span>
-        {monthlyChange}
+        £{monthlyChange.toFixed(2)}
+        per month
         <span>
             <button on:click={() => (balances = {})}>Reset</button>
             <SaveBalancesButton {...{ balances }} />
